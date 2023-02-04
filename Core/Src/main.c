@@ -20,6 +20,8 @@
 #include "main.h"
 #include <stdio.h>
 #include <string.h>
+#include "NanoEdgeAI.h"
+#include "knowledge.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -40,6 +42,14 @@
 #define LIS3DH_OUT_X_L 0x28
 #define BUFFER_SIZE     512
 #define NB_AXES         3
+#define CLASS_NUMBER	2
+//uint16_t input_user_buffer[BUFFER_SIZE * NB_AXES]; // Buffer of input values
+float output_class_buffer[CLASS_NUMBER]; // Buffer of class probabilities
+const char *id2class[CLASS_NUMBER + 1] = { // Buffer for mapping class id to class name
+	"unknown",
+	"Stable",
+	"Move",
+};
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -68,10 +78,45 @@ static void MX_I2C1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint8_t buf[32];
+uint8_t buff[64];
 uint16_t x = 1;
 uint16_t y = 2;
 uint16_t z = 3;
 uint16_t acc_buffer[1536];
+uint16_t class_number;
+uint16_t id_class = 0; // Point to id class (see argument of neai_classification fct)
+
+void fill_buffer(uint16_t acc_buffer[])
+{
+	/* USER BEGIN */
+	  buf[0] = LIS3DH_OUT_X_L | 0x80;
+
+	   for (uint16_t i = 0; i < BUFFER_SIZE; i++) {
+	      if (HAL_I2C_IsDeviceReady(&hi2c1, LIS3DH_V_CHIP_ADDR, 3, 100) == 0) { // New data is available
+	    	  buf[0] = LIS3DH_OUT_X_L | 0x80;
+	    	  HAL_I2C_Master_Transmit(&hi2c1, LIS3DH_V_CHIP_ADDR, buf, 1, HAL_MAX_DELAY);
+	    	  HAL_I2C_Master_Receive(&hi2c1, LIS3DH_V_CHIP_ADDR, buf, 6, HAL_MAX_DELAY);
+	    	  x = buf[1] << 8 | buf[0];
+	    	  y = buf[3] << 8 | buf[2];
+	    	  z = buf[5] << 8 | buf[4];
+	          acc_buffer[NB_AXES * i] = x;
+	          acc_buffer[(NB_AXES * i) + 1] = y;
+	          acc_buffer[(NB_AXES * i) + 2] = z;
+	      } else {
+	    	  i--; // New data not ready
+	      }
+	   }
+
+	   for (uint16_t isample = 0; isample < NB_AXES * BUFFER_SIZE - 1; isample++) {
+		   sprintf((char*)buf, "%d ", acc_buffer[isample]);
+		   HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	   }
+	  sprintf((char*)buf, "%d\n", acc_buffer[NB_AXES * BUFFER_SIZE] -1);
+	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+
+	  HAL_Delay(100);
+	/* USER END */
+}
 /* USER CODE END 0 */
 
 /**
@@ -128,8 +173,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	   /* we get fresh accelerometer data */
 	  buf[0] = LIS3DH_OUT_X_L | 0x80;
-
 	   for (uint16_t i = 0; i < BUFFER_SIZE; i++) {
 	      if (HAL_I2C_IsDeviceReady(&hi2c1, LIS3DH_V_CHIP_ADDR, 3, 100) == 0) { // New data is available
 	    	  buf[0] = LIS3DH_OUT_X_L | 0x80;
@@ -145,7 +190,6 @@ int main(void)
 	    	  i--; // New data not ready
 	      }
 	   }
-
 	   for (uint16_t isample = 0; isample < NB_AXES * BUFFER_SIZE - 1; isample++) {
 		   sprintf((char*)buf, "%d ", acc_buffer[isample]);
 		   HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
@@ -153,7 +197,26 @@ int main(void)
 	  sprintf((char*)buf, "%d\n", acc_buffer[NB_AXES * BUFFER_SIZE] -1);
 	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
 
-	  HAL_Delay(100);
+	  /* Initialization ------------------------------------------------------------*/
+	  enum neai_state error_code = neai_classification_init(knowledge);
+	  if (error_code != NEAI_OK) {
+		  /* This happens if the knowledge does not correspond to the library or if the library works into a not supported board. */
+		  sprintf((char*)buf, "ErrorTx NanoEdge AI\n");
+		  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	  }
+
+	  /* Classification ------------------------------------------------------------*/
+	  /* we classify the input signal and get a class id as output */
+
+	  class_number = neai_classification(acc_buffer, output_class_buffer, &id_class);
+	  sprintf((char*)buf, "I want read value: %f \n", output_class_buffer[1]*100);
+	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	  //class_number = 2;
+	  /* we print the result to the serial */
+	   sprintf((char*)buff, "Class detected: %s (Certainty: %d%%)\n", id2class[class_number], (output_class_buffer[class_number - 1] * 100));
+	   HAL_UART_Transmit(&huart2, buff, strlen((char*)buff), HAL_MAX_DELAY);
+	   // the name of the class and the associated probability %
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
