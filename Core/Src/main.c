@@ -37,14 +37,14 @@
 /* USER CODE BEGIN PD */
 #define LIS3DH_G_CHIP_ADDR (0x18 << 1)  // SA0(=SD0 pin) = Ground
 #define LIS3DH_V_CHIP_ADDR (0x19 << 1)	// SA0(=SD0 pin) = Vdd
-#define LIS3DH_WHO_AM_I	0x0f
+#define LIS3DH_WHO_AM_I	 0x0f
 #define LIS3DH_CTRL_REG1 0x20
 #define LIS3DH_CTRL_REG4 0x23
-#define LIS3DH_OUT_X_L 0x28
+#define LIS3DH_OUT_X_L   0x28
 
 #define BUFFER_SIZE     512
 #define NB_AXES         3
-#define CLASS_NUMBER	2
+#define CLASS_NUMBER	  3
 
 /* USER CODE END PD */
 
