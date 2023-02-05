@@ -44,7 +44,7 @@
 
 #define BUFFER_SIZE     512
 #define NB_AXES         3
-#define CLASS_NUMBER	  3
+
 
 /* USER CODE END PD */
 
@@ -61,15 +61,15 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 uint8_t buf[32];
 uint8_t res[64];
-uint16_t acc_buffer[1536];
 uint16_t class_number;
 uint16_t id_class = 0; 						// Point to id class (see argument of neai_classification fct)
+float acc_buffer[1536];
 float output_class_buffer[CLASS_NUMBER]; 	// Buffer of class probabilities
 const char *id2class[CLASS_NUMBER + 1] = { 	// Buffer for mapping class id to class name
 	"unknown",
 	"fan_turned_off",
 	"speed_1",
-	"speed_2",
+	//"speed_2",
 };
 
 HAL_StatusTypeDef ret;
@@ -207,7 +207,7 @@ int main(void)
 	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
 
 	  // Result (the name of the class and the associated probability %) being printed onto serial monitor
-	  sprintf((char*)res, "Class detected: %s (Certainty: %d%%)\n", id2class[class_number], (output_class_buffer[class_number - 1] * 100));
+	  sprintf((char*)res, "Class detected: %s (Certainty: %f%%)\n", id2class[class_number], (output_class_buffer[class_number - 1] * 100));
 	  HAL_UART_Transmit(&huart2, res, strlen((char*)res), HAL_MAX_DELAY);
 
     /* USER CODE END WHILE */
