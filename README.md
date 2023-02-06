@@ -27,4 +27,4 @@ board/services.
 * [Source code and relevant comments](Core/Src/main.c)
 
 # Youtube
-[Multispeed Fan Classifier Video](https://youtu.be/p0kYHRa8ACM)
+[![Multispeed Fan Classifier Video](https://img.youtube.com/vi/p0kYHRa8ACM/0.jpg)](https://www.youtube.com/watch?v=p0kYHRa8ACM)
