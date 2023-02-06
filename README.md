@@ -10,7 +10,7 @@ board/services.
 1.   STM32 Nucleo Development   
 2.   3-axis MEMS accelerometer LIS3DH
 
-<img align="center" alt="STM 32" width="400" src="https://images.okr.ro/serve/product/1af0c4ad43ce5306497b3d827d4c4af0-274369-400_400"><img align="center" alt="STM 32" width="400" src="https://cartesiam-neai-docs.readthedocs-hosted.com/_images/nucleo-l432kc.jpg">
+<img align="center" alt="STM 32" width="300" src="https://images.okr.ro/serve/product/1af0c4ad43ce5306497b3d827d4c4af0-274369-400_400"><img align="center" alt="STM 32" width="400" src="https://cartesiam-neai-docs.readthedocs-hosted.com/_images/nucleo-l432kc.jpg">
 
 # Group Members
 | NAME | MATRIC NUMBER |
