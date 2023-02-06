@@ -36,15 +36,14 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LIS3DH_G_CHIP_ADDR (0x18 << 1)  // SA0(=SD0 pin) = Ground
-#define LIS3DH_V_CHIP_ADDR (0x19 << 1)	// SA0(=SD0 pin) = Vdd
+#define LIS3DH_V_CHIP_ADDR (0x19 << 1)	//SA0(=SD0 pin) = Vdd
 #define LIS3DH_WHO_AM_I	 0x0f
 #define LIS3DH_CTRL_REG1 0x20
 #define LIS3DH_CTRL_REG4 0x23
-#define LIS3DH_OUT_X_L   0x28
-
+#define LIS3DH_OUT_X_L 0x28
 #define BUFFER_SIZE     512
 #define NB_AXES         3
-
+#define CLASS_NUMBER	3
 
 /* USER CODE END PD */
 
@@ -59,20 +58,7 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint8_t buf[32];
-uint8_t res[64];
-uint16_t class_number;
-uint16_t id_class = 0; 						// Point to id class (see argument of neai_classification fct)
-float acc_buffer[1536];
-float output_class_buffer[CLASS_NUMBER]; 	// Buffer of class probabilities
-const char *id2class[CLASS_NUMBER + 1] = { 	// Buffer for mapping class id to class name
-	"unknown",
-	"fan_turned_off",
-	"speed_1",
-	//"speed_2",
-};
 
-HAL_StatusTypeDef ret;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -86,6 +72,20 @@ static void MX_I2C1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint8_t buf[32];
+uint8_t res[64];
+float x = 0;
+float y = 0;
+float z = 0;
+float acc_buffer[1536]; //BUFFER_SIZE * NB_AXES
+uint16_t id_class = 0; // Point to id class (see argument of neai_classification fct)
+float output_class_buffer[CLASS_NUMBER]; // Buffer of class probabilities
+const char *id2class[CLASS_NUMBER + 1] = { // Buffer for mapping class id to class name
+	"unknown",
+	"fan_turned_off",
+	"speed_1",
+	"speed_2",
+};
 
 /* USER CODE END 0 */
 
@@ -120,22 +120,23 @@ int main(void)
   MX_USART2_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
+  HAL_StatusTypeDef ret;
 
   // Testing on the functionality of the LIS3DH accelerometer
   buf[0] = LIS3DH_CTRL_REG1;
   buf[1] = 0x97;
   ret = HAL_I2C_Master_Transmit(&hi2c1, LIS3DH_V_CHIP_ADDR, buf, 2, HAL_MAX_DELAY);
   if ( ret != HAL_OK ) {
-  	sprintf((char*)buf,"ErrorTx CTRL_REG1\n");
-  	HAL_UART_Transmit(&huart2, buf, strlen(( char*)buf), HAL_MAX_DELAY);
+	  sprintf((char*)buf,"ErrorTx CTRL_REG1\n");
+	  HAL_UART_Transmit(&huart2, buf, strlen(( char*)buf), HAL_MAX_DELAY);
   }
 
   buf[0] = LIS3DH_CTRL_REG4;
   buf[1] = 0x08;
   ret = HAL_I2C_Master_Transmit(&hi2c1, LIS3DH_V_CHIP_ADDR, buf, 2, HAL_MAX_DELAY);
   if ( ret != HAL_OK ) {
-  	sprintf((char*)buf,"ErrorTx CTRL_REG4\n");
-  	HAL_UART_Transmit(&huart2, buf, strlen(( char*)buf), HAL_MAX_DELAY);
+	  sprintf((char*)buf,"ErrorTx CTRL_REG4\n");
+	  HAL_UART_Transmit(&huart2, buf, strlen(( char*)buf), HAL_MAX_DELAY);
   }
 
   /* USER CODE END 2 */
@@ -145,70 +146,67 @@ int main(void)
   while (1)
   {
 	  // Device test to check the connectivity between STM32 and LIS3DH accelerometer
-//	  buf[0] = LIS3DH_WHO_AM_I;
-//	  ret = HAL_I2C_Master_Transmit(&hi2c2, LIS3DH_V_CHIP_ADDR, buf, 1, HAL_MAX_DELAY);	// Master send a read request to slave
-//	  if (ret != HAL_OK)
-//	  {																					// V = 0x19 = slave address of R/W
-//	     sprintf((char*)buf,"ErrorTx WHO_AM_I");										// 1 = read 1 byte
-//	     HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
-//	  }
-//
-//	  ret = HAL_I2C_Master_Receive(&hi2c2, LIS3DH_V_CHIP_ADDR, buf, 1, HAL_MAX_DELAY);	// Slave send their identity to master
-//	  if (ret != HAL_OK){
-//	     sprintf((char*)buf,"ErrorRx WHO_AM_I");
-//	     HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
-//	  }
-//	  sprintf((char*)buf,"ID: 0x%02X\r\n", buf[0]);										// Send value received on master to serial monitor
-//	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
-//	  HAL_Delay(200);
+	  //	  buf[0] = LIS3DH_WHO_AM_I;
+	  //	  ret = HAL_I2C_Master_Transmit(&hi2c2, LIS3DH_V_CHIP_ADDR, buf, 1, HAL_MAX_DELAY);	// Master send a read request to slave
+	  //	  if (ret != HAL_OK)
+	  //	  {																					// V = 0x19 = slave address of R/W
+	  //	     sprintf((char*)buf,"ErrorTx WHO_AM_I");										// 1 = read 1 byte
+	  //	     HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	  //	  }
+	  //
+	  //	  ret = HAL_I2C_Master_Receive(&hi2c2, LIS3DH_V_CHIP_ADDR, buf, 1, HAL_MAX_DELAY);	// Slave send their identity to master
+	  //	  if (ret != HAL_OK){
+	  //	     sprintf((char*)buf,"ErrorRx WHO_AM_I");
+	  //	     HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	  //	  }
+	  //	  sprintf((char*)buf,"ID: 0x%02X\r\n", buf[0]);										// Send value received on master to serial monitor
+	  //	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	  //	  HAL_Delay(200);
 
 	  // Data Logging
-	  for (uint16_t i = 0; i < BUFFER_SIZE; i++)
-	  {
-	  	  buf[0] = LIS3DH_OUT_X_L | 0x80;
-	  	  ret = HAL_I2C_Master_Transmit(&hi2c1, LIS3DH_V_CHIP_ADDR, buf, 1, HAL_MAX_DELAY);
-	  	  // if the device is ready to transmit
-	  	  if (ret == HAL_OK)
-	  	  {
-	  		  // Receive new data
-	  	  	  HAL_I2C_Master_Receive(&hi2c1, LIS3DH_V_CHIP_ADDR, buf, 6, HAL_MAX_DELAY);
-	  	  	  // Insert new data into buffer
-	  	  	  acc_buffer[NB_AXES * i] = buf[1] << 8 | buf[0];		// x axis
-	  	  	  acc_buffer[(NB_AXES * i) + 1] = buf[3] << 8 | buf[2]; // y axis
-	  	  	  acc_buffer[(NB_AXES * i) + 2] = buf[5] << 8 | buf[4]; // z axis
-	  	  }
-	  	  // else, the device is not ready
-	  	  else
-	  	  {
-	  	  	  i--;
-	  	  }
-	  }
-	  // Print sample data onto serial monitor @ capture sample data for AI classification
-//	  for (uint16_t isample = 0; isample < NB_AXES * BUFFER_SIZE - 1; isample++)
-//	  {
-//	  	  sprintf((char*)buf, "%d ", acc_buffer[isample]);
-//	  	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
-//	  }
-//	  sprintf((char*)buf, "%d\n", acc_buffer[NB_AXES * BUFFER_SIZE] -1);
-//	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	  buf[0] = LIS3DH_OUT_X_L | 0x80;
+	  for (uint16_t i = 0; i < BUFFER_SIZE; i++) {
+		  if (HAL_I2C_IsDeviceReady(&hi2c1, LIS3DH_V_CHIP_ADDR, 3, 100) == 0) { // New data is available
+			  buf[0] = LIS3DH_OUT_X_L | 0x80;
+			  HAL_I2C_Master_Transmit(&hi2c1, LIS3DH_V_CHIP_ADDR, buf, 1, HAL_MAX_DELAY);
+	    	  HAL_I2C_Master_Receive(&hi2c1, LIS3DH_V_CHIP_ADDR, buf, 6, HAL_MAX_DELAY);
+	    	  x = buf[1] << 8 | buf[0];
+	    	  y = buf[3] << 8 | buf[2];
+	    	  z = buf[5] << 8 | buf[4];
+	          acc_buffer[NB_AXES * i] = x;
+	          acc_buffer[(NB_AXES * i) + 1] = y;
+	          acc_buffer[(NB_AXES * i) + 2] = z;
+		  } else {
+	    	  i--; // New data not ready
+	      }
+	   }
 
+	  // Print sample data onto serial monitor @ capture sample data for AI classification
+	  //	  for (uint16_t isample = 0; isample < NB_AXES * BUFFER_SIZE - 1; isample++)
+	  //	  {
+	  //	  	  sprintf((char*)buf, "%d ", acc_buffer[isample]);
+	  //	  	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	  //	  }
+	  //	  sprintf((char*)buf, "%d\n", acc_buffer[NB_AXES * BUFFER_SIZE] -1);
+	  //	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+
+	  /* Initialization ------------------------------------------------------------*/
 	  // Initialization for the AI classification model with "knowledge" sample data
 	  enum neai_state error_code = neai_classification_init(knowledge);
 	  // if the knowledge does not correspond to the library or if the library works into a not supported board.
-	  if (error_code != NEAI_OK)
-	  {
-	  	 sprintf((char*)buf, "ErrorTx NanoEdge AI\n");
-	  	 HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	  if (error_code != NEAI_OK) {
+		  sprintf((char*)buf, "ErrorTx NanoEdge AI\n");
+		  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
 	  }
 
+	  /* Classification ------------------------------------------------------------*/
 	  // Classification for the input signal and get a class id as output
-	  class_number = neai_classification(acc_buffer, output_class_buffer, &id_class);
-	  sprintf((char*)buf, "I want read value: %f \n", output_class_buffer[1]*100);
-	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	  neai_classification(acc_buffer, output_class_buffer, &id_class);
 
-	  // Result (the name of the class and the associated probability %) being printed onto serial monitor
-	  sprintf((char*)res, "Class detected: %s (Certainty: %f%%)\n", id2class[class_number], (output_class_buffer[class_number - 1] * 100));
+	  // Result (the name of the class and the associated certainty %) being printed onto serial monitor
+	  sprintf((char*)res, "Class detected: %s (Certainty: %d%%)\n", id2class[id_class], (uint16_t) (output_class_buffer[id_class - 1] * 100));
 	  HAL_UART_Transmit(&huart2, res, strlen((char*)res), HAL_MAX_DELAY);
+	  HAL_Delay(10);
 
     /* USER CODE END WHILE */
 
