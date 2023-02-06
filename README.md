@@ -42,3 +42,8 @@ board/services.
 # Youtube Video
 ***
 [![Multispeed Fan Classifier Video](https://img.youtube.com/vi/p0kYHRa8ACM/0.jpg)](https://www.youtube.com/watch?v=p0kYHRa8ACM)
+
+# References
+***
+1.  [Multispeed Fan Classifier](https://cartesiam-neai-docs.readthedocs-hosted.com/tutorials/class_multispeed_fan/class_multispeed_fan.html)
+2.  [How to create a multi-state vibrations classifier using NanoEdge AI studio](https://wiki.st.com/stm32mcu/wiki/AI:How_to_create_a_multi-state_vibrations_classifier_using_NanoEdge_AI_studio)
