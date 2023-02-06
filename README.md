@@ -26,5 +26,13 @@ board/services.
 * [Program flow chart/pseudocode](Rubric/Program%20Flow%20Chart.png) </br>
 * [Source code and relevant comments](Core/Src/main.c)
 
-# Youtube
+# Pinout & Configuration
+|![Pinout](Rubric/Pinout%20%26%20Configuration.png)|
+|-|
+
+# Hardware Implementation
+|![Hardware](Rubric/Physical%20Diagram.png)|
+|-|
+
+# Youtube Video
 [![Multispeed Fan Classifier Video](https://img.youtube.com/vi/p0kYHRa8ACM/0.jpg)](https://www.youtube.com/watch?v=p0kYHRa8ACM)
