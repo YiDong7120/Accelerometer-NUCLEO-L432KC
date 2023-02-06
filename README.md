@@ -3,8 +3,8 @@ The assignment is to create a device that can be placed directly on a vibrating 
 patterns, and detect potential anomalies in its behavior. This device will be using STM32 development board 
 together with the NanoEdge AI Library.
 
-<img align="left" alt="STM 32" width="200" src="https://cartesiam-neai-docs.readthedocs-hosted.com/_images/st_logo.png">
-<img align="left" alt="AI STUDIO" width="200" src="https://cartesiam-neai-docs.readthedocs-hosted.com/_images/banner.png">
+<img align="center" alt="STM 32" width="400" src="https://cartesiam-neai-docs.readthedocs-hosted.com/_images/st_logo.png">
+<img align="center" alt="AI STUDIO" width="400" src="https://cartesiam-neai-docs.readthedocs-hosted.com/_images/banner.png">
 
 The project will be developed in a group of 2-3 students and will utilize the following development 
 board/services.
