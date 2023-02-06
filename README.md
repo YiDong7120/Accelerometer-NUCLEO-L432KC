@@ -23,7 +23,7 @@ board/services.
 ### The report will be evaluated based on the rubric, should at least includes:
 * [Project Background](Rubric/Project%20Background.txt) </br>
 * [Schematic Design](Rubric/Schematic%20Diagram.png) </br>
-* [Program flow chart/pseudocode](Program%20Flow%20Chart.png) </br>
+* [Program flow chart/pseudocode](Rubric/Program%20Flow%20Chart.png) </br>
 * [Source code and relevant comments](Core/Src/main.c)
 
 # Youtube
