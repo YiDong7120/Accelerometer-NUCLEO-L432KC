@@ -39,7 +39,7 @@ board/services.
 |![Hardware](Rubric/Physical%20Diagram.png)|
 |-|
 
-# Youtube Video
+# Presentation
 ***
 [![Multispeed Fan Classifier Video](https://img.youtube.com/vi/p0kYHRa8ACM/0.jpg)](https://www.youtube.com/watch?v=p0kYHRa8ACM)
 
